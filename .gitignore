@@ -14,3 +14,6 @@ mlruns/
 mlartifacts/
 mlflow.db
 iris.csv
+
+*.pyc
+.venv/
