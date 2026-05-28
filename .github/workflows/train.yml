@@ -39,7 +39,7 @@ jobs:
           runs = client.search_runs(experiment.experiment_id, order_by=['start_time DESC'], max_results=1)
           run = runs[0]
 
-          accuracy = run.data.metrics.get('training_accuracy') or run.data.metrics.get('accuracy')
+          accuracy = run.data.metrics.get('test_accuracy')
           print(f'Latest run accuracy: {accuracy}')
 
           assert accuracy is not None, 'No accuracy metric found'
