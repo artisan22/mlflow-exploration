@@ -1,0 +1,55 @@
+name: Train and Test Model
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  train:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+
+      - name: Install uv
+        run: pip install uv
+
+      - name: Install dependencies
+        run: uv sync
+
+      - name: Train model
+        run: uv run python train.py
+
+      - name: Check accuracy threshold
+        run: |
+          uv run python -c "
+          import mlflow
+          import json
+
+          client = mlflow.tracking.MlflowClient()
+          experiment = client.get_experiment_by_name('iris-classifier')
+          runs = client.search_runs(experiment.experiment_id, order_by=['start_time DESC'], max_results=1)
+          run = runs[0]
+
+          accuracy = run.data.metrics.get('test_accuracy')
+          print(f'Latest run accuracy: {accuracy}')
+
+          assert accuracy is not None, 'No accuracy metric found'
+          assert accuracy >= 0.80, f'Accuracy {accuracy} is below threshold 0.80'
+          print('Quality gate passed.')
+          "
+
+      - name: Upload model artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: trained-model
+          path: mlruns/
+          retention-days: 7

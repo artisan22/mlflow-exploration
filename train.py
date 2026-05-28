@@ -15,7 +15,6 @@ X_train, X_test, y_train, y_test = train_test_split(
     iris.data, iris.target, test_size=0.2, random_state=RANDOM_STATE
 )
 
-# --- ONE LINE replaces all the log_param and log_metric calls ---
 mlflow.set_experiment("iris-classifier")
 mlflow.sklearn.autolog()
 
@@ -26,4 +25,8 @@ with mlflow.start_run():
         random_state=RANDOM_STATE
     )
     model.fit(X_train, y_train)
-    print("Run complete")
+
+    # Log test accuracy manually — autolog only covers training data
+    test_accuracy = model.score(X_test, y_test)
+    mlflow.log_metric("test_accuracy", test_accuracy)
+    print(f"Training complete. Test accuracy: {test_accuracy:.4f}")
